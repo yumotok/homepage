@@ -1,5 +1,5 @@
 services:
-  backend:
+  container:
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -9,6 +9,6 @@ services:
     command: sleep infinity
     volumes:
       - ../../.:/current
-      - server-node-modules:/current/server/node_modules
+      - nextjs-node-modules:/current/nextjs/node_modules
 volumes:
-  server-node-modules:
+  nextjs-node-modules:

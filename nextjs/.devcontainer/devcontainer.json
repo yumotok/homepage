@@ -1,10 +1,10 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "backend-server",
+	"name": "container-nextjs",
 	"dockerComposeFile": "./docker-compose.yml",
-	"service": "backend",
-	"workspaceFolder": "/current/server",
+	"service": "container",
+	"workspaceFolder": "/current/nextjs",
 	"remoteUser": "node",
 	"updateRemoteUserUID": true,
 	"onCreateCommand": "sudo chown -hR node:node /current",
