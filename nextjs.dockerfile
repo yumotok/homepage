@@ -8,13 +8,13 @@ COPY ./nextjs .
 RUN npm ci
 RUN npm run build
 
-# デプロイ
-WORKDIR /deploy
-
-RUN cp -r /app/public ./public
-RUN mkdir -p ./.next/static
-RUN cp -r /app/.next/static ./.next/static
-RUN cp -r /app/.next/standalone ./
+# デプロイ用ファイルを配置
+RUN mkdir -p /deploy
+RUN cp -r /app/.next/standalone/. /deploy/
+RUN mkdir -p /deploy/public
+RUN cp -r /app/public/. /deploy/public/
+RUN mkdir -p /deploy/.next/static
+RUN cp -r /app/.next/static/. /deploy/.next/static/
 
 # 実行用コンテナ
 FROM node:20-bookworm-slim AS runner
