@@ -7,7 +7,7 @@
 	"workspaceFolder": "/current/cdk",
 	"remoteUser": "node",
 	"updateRemoteUserUID": true,
-	"onCreateCommand": "sudo chown -hR node:node /current",
+	"onCreateCommand": "sudo chown -hR node:node /current /home/node/.aws",
 	"customizations": {
 		"vscode": {
 			"settings": {

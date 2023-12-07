@@ -13,8 +13,7 @@ services:
         target: '/current'
       - type: bind
         source: '~/.aws'
-        target: '/root/.aws'
-        read_only: true
+        target: '/home/node/.aws'
       - type: volume
         source: cdk-node-modules
         target: '/current/node_modules'
