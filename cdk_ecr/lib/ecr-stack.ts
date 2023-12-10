@@ -6,7 +6,8 @@ export class ECRStack extends cdk.Stack {
     super(scope, id, props);
     // ECRリポジトリの作成
     new cdk.aws_ecr.CfnRepository(this, 'divide-prod', {
-      repositoryName: 'divide-prod'
+      repositoryName: 'divide-prod',
+      emptyOnDelete: true,
     });
   }
 }
