@@ -5,9 +5,6 @@ export class ECRStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const region = this.node.tryGetContext("project");
-    const env = this.node.tryGetContext("env");
-
     // ECRリポジトリの作成
     const ecr = new cdk.aws_ecr.CfnRepository(this, "divide-prod", {
       repositoryName: "divide-prod",
