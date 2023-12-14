@@ -1,5 +1,5 @@
 import { CfnResource, Stack, StackProps } from "aws-cdk-lib";
-import { CfnInternetGateway, CfnSubnet, CfnVPC, CfnVPCGatewayAttachment } from "aws-cdk-lib/aws-ec2";
+import { CfnEIP, CfnInternetGateway, CfnSubnet, CfnVPC, CfnVPCGatewayAttachment } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
 class Context {
@@ -81,6 +81,9 @@ export class BaseStack extends Stack {
     ];
 
     const igw = this.createInternetGateway(context, vpc.raw, "igw");
+
+    const eip1a = this.createElasticIp(context, "eip-ngw-1a");
+    const eip1c = this.createElasticIp(context, "eip-ngw-1c");
   }
 
   private createVpc(context: Context, resourceName: string): Resource<CfnVPC> {
@@ -118,5 +121,13 @@ export class BaseStack extends Stack {
     });
 
     return new Resource(internetGateway, context.getResourceName(resourceName));
+  }
+
+  private createElasticIp(context: Context, resourceName: string): Resource<CfnEIP> {
+    const elasticIp = new CfnEIP(this, resourceName, {
+      domain: "vpc",
+      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
+    });
+    return new Resource(elasticIp, context.getResourceName(resourceName));
   }
 }
