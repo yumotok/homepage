@@ -5,15 +5,18 @@ import { Construct } from "constructs";
 class Context {
   project: string;
   env: string;
+
   constructor(stack: Stack) {
     this.project = stack.node.tryGetContext("project");
     this.env = stack.node.tryGetContext("env");
   }
 
-    getResourceName(resource: string): string {
-        return `${this.project}-${this.env}-${resource}`;
-    }
+  getResourceName(resource: string): string {
+    return `${this.project}-${this.env}-${resource}`;
+  }
 }
+
+type AvailabilityZone = "ap-northeast-1a" | "ap-northeast-1c";
 
 export class BaseStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -22,6 +25,50 @@ export class BaseStack extends Stack {
     const context = new Context(this);
 
     const vpc = this.createVpc(context);
+    const subnets = [
+      this.createSubnet(
+        context,
+        vpc,
+        "10.0.11.0/24",
+        "ap-northeast-1a",
+        "subnet-public-1a"
+      ),
+      this.createSubnet(
+        context,
+        vpc,
+        "10.0.12.0/24",
+        "ap-northeast-1c",
+        "subnet-public-1c"
+      ),
+      this.createSubnet(
+        context,
+        vpc,
+        "10.0.21.0/24",
+        "ap-northeast-1a",
+        "subnet-app-1a"
+      ),
+      this.createSubnet(
+        context,
+        vpc,
+        "10.0.22.0/24",
+        "ap-northeast-1c",
+        "subnet-app-1c"
+      ),
+      this.createSubnet(
+        context,
+        vpc,
+        "10.0.31.0/24",
+        "ap-northeast-1a",
+        "subnet-private-1a"
+      ),
+      this.createSubnet(
+        context,
+        vpc,
+        "10.0.32.0/24",
+        "ap-northeast-1c",
+        "subnet-private-1c"
+      ),
+    ];
   }
 
   private createVpc(context: Context): CfnVPC {
@@ -32,12 +79,19 @@ export class BaseStack extends Stack {
     return vpc;
   }
 
-  private createSubnet(context: Context, vpc: CfnVPC): void {
-    const subnet = new CfnSubnet(this, "SubnetPublic1a", {
+  private createSubnet(
+    context: Context,
+    vpc: CfnVPC,
+    cidrBlock: string,
+    availabilityZone: AvailabilityZone,
+    resourceName: string
+  ): CfnSubnet {
+    const subnet = new CfnSubnet(this, resourceName, {
       vpcId: vpc.ref,
-      cidrBlock: "10.0.1.0/24",
-      availabilityZone: "ap-northeast-1a",
-      tags: [{ key: "Name", value: context.getResourceName("subnet-public-1a") }],
+      cidrBlock: cidrBlock,
+      availabilityZone: availabilityZone,
+      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
     });
+    return subnet;
   }
 }
