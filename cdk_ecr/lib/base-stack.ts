@@ -1,5 +1,5 @@
 import { CfnResource, Stack, StackProps } from "aws-cdk-lib";
-import { CfnSubnet, CfnVPC } from "aws-cdk-lib/aws-ec2";
+import { CfnInternetGateway, CfnSubnet, CfnVPC, CfnVPCGatewayAttachment } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
 class Context {
@@ -79,6 +79,8 @@ export class BaseStack extends Stack {
         "subnet-private-1c"
       ),
     ];
+
+    const igw = this.createInternetGateway(context, vpc.raw, "igw");
   }
 
   private createVpc(context: Context, resourceName: string): Resource<CfnVPC> {
@@ -103,5 +105,18 @@ export class BaseStack extends Stack {
       tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
     });
     return new Resource(subnet, context.getResourceName(resourceName));
+  }
+
+  private createInternetGateway(context:Context, vpc: CfnVPC, resourceName: string): Resource<CfnInternetGateway> {
+    const internetGateway = new CfnInternetGateway(this, resourceName, {
+      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
+    });
+
+    new CfnVPCGatewayAttachment(this, "vpc-gateway-attachment", {
+      vpcId: vpc.ref,
+      internetGatewayId: internetGateway.ref,
+    });
+
+    return new Resource(internetGateway, context.getResourceName(resourceName));
   }
 }
