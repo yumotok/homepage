@@ -1,4 +1,4 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import { CfnResource, Stack, StackProps } from "aws-cdk-lib";
 import { CfnSubnet, CfnVPC } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
@@ -16,6 +16,16 @@ class Context {
   }
 }
 
+class Resource<T extends CfnResource> {
+  raw: T;
+  resourceName: string;
+
+  constructor(resource: T, resourceName: string) {
+    this.raw = resource;
+    this.resourceName = resourceName;
+  }
+}
+
 type AvailabilityZone = "ap-northeast-1a" | "ap-northeast-1c";
 
 export class BaseStack extends Stack {
@@ -24,46 +34,46 @@ export class BaseStack extends Stack {
 
     const context = new Context(this);
 
-    const vpc = this.createVpc(context);
+    const vpc = this.createVpc(context, "vpc");
     const subnets = [
       this.createSubnet(
         context,
-        vpc,
+        vpc.raw,
         "10.0.11.0/24",
         "ap-northeast-1a",
         "subnet-public-1a"
       ),
       this.createSubnet(
         context,
-        vpc,
+        vpc.raw,
         "10.0.12.0/24",
         "ap-northeast-1c",
         "subnet-public-1c"
       ),
       this.createSubnet(
         context,
-        vpc,
+        vpc.raw,
         "10.0.21.0/24",
         "ap-northeast-1a",
         "subnet-app-1a"
       ),
       this.createSubnet(
         context,
-        vpc,
+        vpc.raw,
         "10.0.22.0/24",
         "ap-northeast-1c",
         "subnet-app-1c"
       ),
       this.createSubnet(
         context,
-        vpc,
+        vpc.raw,
         "10.0.31.0/24",
         "ap-northeast-1a",
         "subnet-private-1a"
       ),
       this.createSubnet(
         context,
-        vpc,
+        vpc.raw,
         "10.0.32.0/24",
         "ap-northeast-1c",
         "subnet-private-1c"
@@ -71,12 +81,12 @@ export class BaseStack extends Stack {
     ];
   }
 
-  private createVpc(context: Context): CfnVPC {
-    const vpc = new CfnVPC(this, "Vpc", {
+  private createVpc(context: Context, resourceName: string): Resource<CfnVPC> {
+    const vpc = new CfnVPC(this, resourceName, {
       cidrBlock: "10.0.0.0/16",
-      tags: [{ key: "Name", value: context.getResourceName("vpc") }],
+      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
     });
-    return vpc;
+    return new Resource(vpc, context.getResourceName(resourceName));
   }
 
   private createSubnet(
@@ -85,13 +95,13 @@ export class BaseStack extends Stack {
     cidrBlock: string,
     availabilityZone: AvailabilityZone,
     resourceName: string
-  ): CfnSubnet {
+  ): Resource<CfnSubnet> {
     const subnet = new CfnSubnet(this, resourceName, {
       vpcId: vpc.ref,
       cidrBlock: cidrBlock,
       availabilityZone: availabilityZone,
       tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
     });
-    return subnet;
+    return new Resource(subnet, context.getResourceName(resourceName));
   }
 }
