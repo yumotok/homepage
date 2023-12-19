@@ -4,7 +4,7 @@
 	"name": "settings-cdk-container",
 	"dockerComposeFile": "./docker-compose.yml",
 	"service": "settings-cdk-container",
-	"workspaceFolder": "/current/cdk_ecr",
+	"workspaceFolder": "/current/cdk_base",
 	"remoteUser": "node",
 	"updateRemoteUserUID": true,
 	"onCreateCommand": "sudo chown -hR node:node /current /home/node/.aws",

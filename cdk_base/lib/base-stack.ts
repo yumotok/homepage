@@ -1,5 +1,13 @@
 import { CfnResource, Stack, StackProps } from "aws-cdk-lib";
-import { CfnEIP, CfnInternetGateway, CfnSubnet, CfnVPC, CfnVPCGatewayAttachment } from "aws-cdk-lib/aws-ec2";
+import {
+  CfnEIP,
+  CfnInternetGateway,
+  CfnRoute,
+  CfnRouteTable,
+  CfnSubnet,
+  CfnVPC,
+  CfnVPCGatewayAttachment,
+} from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
 class Context {
@@ -84,6 +92,9 @@ export class BaseStack extends Stack {
 
     const eip1a = this.createElasticIp(context, "eip-ngw-1a");
     const eip1c = this.createElasticIp(context, "eip-ngw-1c");
+    const ngwPublic = this.createNatGateway(context, vpc.raw, "ngw-public");
+    ngwPublic.raw.
+
   }
 
   private createVpc(context: Context, resourceName: string): Resource<CfnVPC> {
@@ -110,7 +121,11 @@ export class BaseStack extends Stack {
     return new Resource(subnet, context.getResourceName(resourceName));
   }
 
-  private createInternetGateway(context:Context, vpc: CfnVPC, resourceName: string): Resource<CfnInternetGateway> {
+  private createInternetGateway(
+    context: Context,
+    vpc: CfnVPC,
+    resourceName: string
+  ): Resource<CfnInternetGateway> {
     const internetGateway = new CfnInternetGateway(this, resourceName, {
       tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
     });
@@ -123,11 +138,40 @@ export class BaseStack extends Stack {
     return new Resource(internetGateway, context.getResourceName(resourceName));
   }
 
-  private createElasticIp(context: Context, resourceName: string): Resource<CfnEIP> {
+  private createElasticIp(
+    context: Context,
+    resourceName: string
+  ): Resource<CfnEIP> {
     const elasticIp = new CfnEIP(this, resourceName, {
       domain: "vpc",
       tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
     });
     return new Resource(elasticIp, context.getResourceName(resourceName));
+  }
+
+  private createNatGateway(
+    context: Context,
+    vpc: CfnVPC,
+    resourceName: string
+  ): Resource<CfnRouteTable> {
+    const natGateway = new CfnRouteTable(this, resourceName, {
+      vpcId: vpc.ref,
+      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
+    });
+    return new Resource(natGateway, context.getResourceName(resourceName));
+  }
+
+  private createRoute(
+    context: Context,
+    destinationCidrBlock: string,
+    routeTable: Resource<CfnRouteTable>,
+    igw: Resource<CfnInternetGateway>
+  ): Resource<CfnRoute> {
+    const route = new CfnRoute(this, routeTable.resourceName + "route", {
+      routeTableId: routeTable.raw.ref,
+      destinationCidrBlock: destinationCidrBlock,
+      gatewayId: igw.raw.ref,
+    });
+    return new Resource(route, routeTable.resourceName + "route");
   }
 }
