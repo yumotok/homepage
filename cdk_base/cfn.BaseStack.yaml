@@ -1,0 +1,212 @@
+Resources:
+  vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: divide-production-vpc
+    Metadata:
+      aws:cdk:path: BaseStack/vpc
+  subnetpublic1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      CidrBlock: 10.0.11.0/24
+      Tags:
+        - Key: Name
+          Value: divide-production-subnet-public-1a
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/subnet-public-1a
+  subnetpublic1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      CidrBlock: 10.0.12.0/24
+      Tags:
+        - Key: Name
+          Value: divide-production-subnet-public-1c
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/subnet-public-1c
+  subnetapp1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      CidrBlock: 10.0.21.0/24
+      Tags:
+        - Key: Name
+          Value: divide-production-subnet-app-1a
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/subnet-app-1a
+  subnetapp1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      CidrBlock: 10.0.22.0/24
+      Tags:
+        - Key: Name
+          Value: divide-production-subnet-app-1c
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/subnet-app-1c
+  subnetprivate1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1a
+      CidrBlock: 10.0.31.0/24
+      Tags:
+        - Key: Name
+          Value: divide-production-subnet-private-1a
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/subnet-private-1a
+  subnetprivate1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: ap-northeast-1c
+      CidrBlock: 10.0.32.0/24
+      Tags:
+        - Key: Name
+          Value: divide-production-subnet-private-1c
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/subnet-private-1c
+  igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-igw
+    Metadata:
+      aws:cdk:path: BaseStack/igw
+  vpcgatewayattachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId:
+        Ref: igw
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/vpc-gateway-attachment
+  divideproductionpublicroutetable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-public-route-table
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-public-route-table
+  divideproductionpublicroutetablepublicroute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: igw
+      RouteTableId:
+        Ref: divideproductionpublicroutetable
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-public-route-table-public-route
+  divideproductionsubnetpublic1aroutetableassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: divideproductionpublicroutetable
+      SubnetId:
+        Ref: subnetpublic1a
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-subnet-public-1a-route-table-association
+  divideproductionsubnetpublic1croutetableassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: divideproductionpublicroutetable
+      SubnetId:
+        Ref: subnetpublic1c
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-subnet-public-1c-route-table-association
+  divideproductionapproutetable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-app-route-table
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-app-route-table
+  divideproductionsubnetapp1aroutetableassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: divideproductionapproutetable
+      SubnetId:
+        Ref: subnetapp1a
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-subnet-app-1a-route-table-association
+  divideproductionsubnetapp1croutetableassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: divideproductionapproutetable
+      SubnetId:
+        Ref: subnetapp1c
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-subnet-app-1c-route-table-association
+  divideproductionprivateroutetable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-private-route-table
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-private-route-table
+  divideproductionsubnetprivate1aroutetableassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: divideproductionprivateroutetable
+      SubnetId:
+        Ref: subnetprivate1a
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-subnet-private-1a-route-table-association
+  divideproductionsubnetprivate1croutetableassociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: divideproductionprivateroutetable
+      SubnetId:
+        Ref: subnetprivate1c
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-subnet-private-1c-route-table-association
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

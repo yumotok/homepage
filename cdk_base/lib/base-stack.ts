@@ -2,9 +2,11 @@ import { CfnResource, Stack, StackProps } from "aws-cdk-lib";
 import {
   CfnEIP,
   CfnInternetGateway,
+  CfnNatGateway,
   CfnRoute,
   CfnRouteTable,
   CfnSubnet,
+  CfnSubnetRouteTableAssociation,
   CfnVPC,
   CfnVPCGatewayAttachment,
 } from "aws-cdk-lib/aws-ec2";
@@ -31,6 +33,72 @@ class Resource<T extends CfnResource> {
   constructor(resource: T, resourceName: string) {
     this.raw = resource;
     this.resourceName = resourceName;
+  }
+}
+
+class RouteTableBuilder {
+  resourceName: string;
+  vpc: Resource<CfnVPC>;
+  subnets: Resource<CfnSubnet>[];
+  igw?: Resource<CfnInternetGateway>;
+  nat?: Resource<CfnNatGateway>;
+
+  constructor(init: {
+    resourceName: string;
+    vpc: Resource<CfnVPC>;
+    subnets: Resource<CfnSubnet>[];
+    igw?: Resource<CfnInternetGateway>;
+    nat?: Resource<CfnNatGateway>;
+  }) {
+    this.resourceName = init.resourceName;
+    this.vpc = init.vpc;
+    this.subnets = init.subnets;
+    this.igw = init.igw;
+    this.nat = init.nat;
+  }
+
+  make(scope: Construct, context: Context): Resource<CfnRouteTable> {
+    const table = new CfnRouteTable(
+      scope,
+      context.getResourceName(this.resourceName),
+      {
+        vpcId: this.vpc.raw.ref,
+        tags: [
+          { key: "Name", value: context.getResourceName(this.resourceName) },
+        ],
+      }
+    );
+
+    if (this.igw != null) {
+      new CfnRoute(
+        scope,
+        context.getResourceName(this.resourceName) + "-public-route",
+        {
+          routeTableId: table.ref,
+          destinationCidrBlock: "0.0.0.0/0",
+          gatewayId: this.igw.raw.ref,
+        }
+      );
+    } else if (this.nat != null) {
+      new CfnRoute(scope, context.getResourceName(this.resourceName) + "-nat", {
+        routeTableId: table.ref,
+        destinationCidrBlock: "0.0.0.0/0",
+        natGatewayId: this.nat.raw.ref,
+      });
+    }
+
+    this.subnets.forEach((subnet) => {
+      new CfnSubnetRouteTableAssociation(
+        scope,
+        subnet.resourceName + "-route-table-association",
+        {
+          routeTableId: table.ref,
+          subnetId: subnet.raw.ref,
+        }
+      );
+    });
+
+    return new Resource(table, context.getResourceName(this.resourceName));
   }
 }
 
@@ -90,11 +158,29 @@ export class BaseStack extends Stack {
 
     const igw = this.createInternetGateway(context, vpc.raw, "igw");
 
-    const eip1a = this.createElasticIp(context, "eip-ngw-1a");
-    const eip1c = this.createElasticIp(context, "eip-ngw-1c");
-    const ngwPublic = this.createNatGateway(context, vpc.raw, "ngw-public");
-    ngwPublic.raw.
+    const tableBuilders = [
+      new RouteTableBuilder({
+        resourceName: "public-route-table",
+        vpc: vpc,
+        subnets: subnets.filter((s) => s.resourceName.includes("public")),
+        igw: igw,
+      }),
+      new RouteTableBuilder({
+        resourceName: "app-route-table",
+        vpc: vpc,
+        subnets: subnets.filter((s) => s.resourceName.includes("app")),
+      }),
+      new RouteTableBuilder({
+        resourceName: "private-route-table",
+        vpc: vpc,
+        subnets: subnets.filter((s) => s.resourceName.includes("private")),
+      }),
+    ];
 
+    // RouteTableを作成する
+    const routeTables = tableBuilders.map((builder) =>
+      builder.make(this, context)
+    );
   }
 
   private createVpc(context: Context, resourceName: string): Resource<CfnVPC> {
@@ -136,42 +222,5 @@ export class BaseStack extends Stack {
     });
 
     return new Resource(internetGateway, context.getResourceName(resourceName));
-  }
-
-  private createElasticIp(
-    context: Context,
-    resourceName: string
-  ): Resource<CfnEIP> {
-    const elasticIp = new CfnEIP(this, resourceName, {
-      domain: "vpc",
-      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
-    });
-    return new Resource(elasticIp, context.getResourceName(resourceName));
-  }
-
-  private createNatGateway(
-    context: Context,
-    vpc: CfnVPC,
-    resourceName: string
-  ): Resource<CfnRouteTable> {
-    const natGateway = new CfnRouteTable(this, resourceName, {
-      vpcId: vpc.ref,
-      tags: [{ key: "Name", value: context.getResourceName(resourceName) }],
-    });
-    return new Resource(natGateway, context.getResourceName(resourceName));
-  }
-
-  private createRoute(
-    context: Context,
-    destinationCidrBlock: string,
-    routeTable: Resource<CfnRouteTable>,
-    igw: Resource<CfnInternetGateway>
-  ): Resource<CfnRoute> {
-    const route = new CfnRoute(this, routeTable.resourceName + "route", {
-      routeTableId: routeTable.raw.ref,
-      destinationCidrBlock: destinationCidrBlock,
-      gatewayId: igw.raw.ref,
-    });
-    return new Resource(route, routeTable.resourceName + "route");
   }
 }
