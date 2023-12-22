@@ -1,0 +1,21 @@
+services:
+  settings-cdk-container:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    init: true
+    environment:
+      - TZ=Asia/Tokyo
+    command: sleep infinity
+    volumes:
+      - type: bind
+        source: '../../.'
+        target: '/current'
+      - type: bind
+        source: '~/.aws'
+        target: '/home/node/.aws'
+      - type: volume
+        source: settings-cdk-node-modules
+        target: '/current/node_modules'
+volumes:
+  settings-cdk-node-modules:
