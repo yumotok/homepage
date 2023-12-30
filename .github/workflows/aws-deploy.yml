@@ -62,7 +62,7 @@ jobs:
 
       - name: CDK Install dependencies
         working-directory: cdk
-        run: npm run ci
+        run: npm ci
       - name: CDK Deploy
         working-directory: cdk
         run: npm run cdk:deploy
