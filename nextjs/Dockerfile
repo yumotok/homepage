@@ -11,7 +11,7 @@ RUN npm run build
 RUN mkdir -p /deploy
 RUN cp -r /app/.next/standalone/. /deploy/
 RUN mkdir -p /deploy/public
-RUN mdir -p /app/public
+RUN mkdir -p /app/public
 RUN cp -r /app/public/. /deploy/public/
 RUN mkdir -p /deploy/.next/static
 RUN cp -r /app/.next/static/. /deploy/.next/static/
