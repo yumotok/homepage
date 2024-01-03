@@ -97,31 +97,31 @@ Resources:
         Ref: vpc
     Metadata:
       aws:cdk:path: BaseStack/vpc-gateway-attachment
-  divideproductionpublicroutetable:
+  divideproductionroutetablepublic:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
         - Key: Name
-          Value: divide-production-public-route-table
+          Value: divide-production-route-table-public
       VpcId:
         Ref: vpc
     Metadata:
-      aws:cdk:path: BaseStack/divide-production-public-route-table
-  divideproductionpublicroutetablepublicroute:
+      aws:cdk:path: BaseStack/divide-production-route-table-public
+  divideproductionroutetablepublicpublicroute:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId:
         Ref: igw
       RouteTableId:
-        Ref: divideproductionpublicroutetable
+        Ref: divideproductionroutetablepublic
     Metadata:
-      aws:cdk:path: BaseStack/divide-production-public-route-table-public-route
+      aws:cdk:path: BaseStack/divide-production-route-table-public-public-route
   divideproductionsubnetpublic1aroutetableassociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId:
-        Ref: divideproductionpublicroutetable
+        Ref: divideproductionroutetablepublic
       SubnetId:
         Ref: subnetpublic1a
     Metadata:
@@ -130,26 +130,26 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId:
-        Ref: divideproductionpublicroutetable
+        Ref: divideproductionroutetablepublic
       SubnetId:
         Ref: subnetpublic1c
     Metadata:
       aws:cdk:path: BaseStack/divide-production-subnet-public-1c-route-table-association
-  divideproductionapproutetable:
+  divideproductionroutetableapp:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
         - Key: Name
-          Value: divide-production-app-route-table
+          Value: divide-production-route-table-app
       VpcId:
         Ref: vpc
     Metadata:
-      aws:cdk:path: BaseStack/divide-production-app-route-table
+      aws:cdk:path: BaseStack/divide-production-route-table-app
   divideproductionsubnetapp1aroutetableassociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId:
-        Ref: divideproductionapproutetable
+        Ref: divideproductionroutetableapp
       SubnetId:
         Ref: subnetapp1a
     Metadata:
@@ -158,26 +158,26 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId:
-        Ref: divideproductionapproutetable
+        Ref: divideproductionroutetableapp
       SubnetId:
         Ref: subnetapp1c
     Metadata:
       aws:cdk:path: BaseStack/divide-production-subnet-app-1c-route-table-association
-  divideproductionprivateroutetable:
+  divideproductionroutetableprivate:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
         - Key: Name
-          Value: divide-production-private-route-table
+          Value: divide-production-route-table-private
       VpcId:
         Ref: vpc
     Metadata:
-      aws:cdk:path: BaseStack/divide-production-private-route-table
+      aws:cdk:path: BaseStack/divide-production-route-table-private
   divideproductionsubnetprivate1aroutetableassociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId:
-        Ref: divideproductionprivateroutetable
+        Ref: divideproductionroutetableprivate
       SubnetId:
         Ref: subnetprivate1a
     Metadata:
@@ -186,11 +186,167 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId:
-        Ref: divideproductionprivateroutetable
+        Ref: divideproductionroutetableprivate
       SubnetId:
         Ref: subnetprivate1c
     Metadata:
       aws:cdk:path: BaseStack/divide-production-subnet-private-1c-route-table-association
+  divideproductionnetworkaclpublic:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-network-acl-public
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-public
+  divideproductionnetworkaclpublicouboundentry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+      NetworkAclId:
+        Ref: divideproductionnetworkaclpublic
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-public-oubound-entry
+  divideproductionnetworkaclpublicinboundentry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      NetworkAclId:
+        Ref: divideproductionnetworkaclpublic
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-public-inbound-entry
+  networkaclassosiationpublicsubnet1a:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: divideproductionnetworkaclpublic
+      SubnetId:
+        Ref: subnetpublic1a
+    Metadata:
+      aws:cdk:path: BaseStack/network-acl-assosiation-public-subnet-1a
+  networkaclassosiationpublicsubnet1c:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: divideproductionnetworkaclpublic
+      SubnetId:
+        Ref: subnetpublic1c
+    Metadata:
+      aws:cdk:path: BaseStack/network-acl-assosiation-public-subnet-1c
+  divideproductionnetworkaclapp:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-network-acl-app
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-app
+  divideproductionnetworkaclappouboundentry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+      NetworkAclId:
+        Ref: divideproductionnetworkaclapp
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-app-oubound-entry
+  divideproductionnetworkaclappinboundentry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      NetworkAclId:
+        Ref: divideproductionnetworkaclapp
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-app-inbound-entry
+  networkaclassosiationappsubnet1a:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: divideproductionnetworkaclapp
+      SubnetId:
+        Ref: subnetapp1a
+    Metadata:
+      aws:cdk:path: BaseStack/network-acl-assosiation-app-subnet-1a
+  networkaclassosiationappsubnet1c:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: divideproductionnetworkaclapp
+      SubnetId:
+        Ref: subnetapp1c
+    Metadata:
+      aws:cdk:path: BaseStack/network-acl-assosiation-app-subnet-1c
+  divideproductionnetworkaclprivate:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      Tags:
+        - Key: Name
+          Value: divide-production-network-acl-private
+      VpcId:
+        Ref: vpc
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-private
+  divideproductionnetworkaclprivateouboundentry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+      NetworkAclId:
+        Ref: divideproductionnetworkaclprivate
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-private-oubound-entry
+  divideproductionnetworkaclprivateinboundentry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      NetworkAclId:
+        Ref: divideproductionnetworkaclprivate
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+    Metadata:
+      aws:cdk:path: BaseStack/divide-production-network-acl-private-inbound-entry
+  networkaclassosiationprivatesubnet1a:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: divideproductionnetworkaclprivate
+      SubnetId:
+        Ref: subnetprivate1a
+    Metadata:
+      aws:cdk:path: BaseStack/network-acl-assosiation-private-subnet-1a
+  networkaclassosiationprivatesubnet1c:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: divideproductionnetworkaclprivate
+      SubnetId:
+        Ref: subnetprivate1c
+    Metadata:
+      aws:cdk:path: BaseStack/network-acl-assosiation-private-subnet-1c
 Parameters:
   BootstrapVersion:
     Type: AWS::SSM::Parameter::Value<String>
