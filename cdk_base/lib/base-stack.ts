@@ -1,4 +1,4 @@
-import { CfnResource, Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, CfnResource, Stack, StackProps } from "aws-cdk-lib";
 import {
   CfnEIP,
   CfnInternetGateway,
@@ -167,6 +167,11 @@ export class BaseStack extends Stack {
     // NetworkAclを作成する
     networkAclBuilders.forEach((builder) => {
       builder.run(this, context);
+    });
+
+    new CfnOutput(this, "vpc-id", {
+      value: vpc.raw.ref,
+      exportName: "vpc-id",
     });
   }
 
