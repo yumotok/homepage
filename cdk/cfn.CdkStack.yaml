@@ -1,0 +1,81 @@
+Resources:
+  MyCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      Tags:
+        - Key: Project
+          Value: homepage
+    Metadata:
+      aws:cdk:path: CdkStack/MyCluster
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Essential: true
+          Image:
+            Fn::Join:
+              - ""
+              - - Fn::ImportValue: ecr-repository-uri
+                - :latest
+          Name: MyContainer
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+      Cpu: "256"
+      ExecutionRoleArn:
+        Fn::Join:
+          - ""
+          - - "arn:aws:iam::"
+            - Ref: AWS::AccountId
+            - :role/ecsTaskExecutionRole
+      Family: homepage_latest
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Tags:
+        - Key: Project
+          Value: homepage
+    Metadata:
+      aws:cdk:path: CdkStack/TaskDefinition
+  FargateService:
+    Type: AWS::ECS::Service
+    Properties:
+      CapacityProviderStrategy:
+        - Base: 1
+          CapacityProvider: FARGATE_SPOT
+      Cluster:
+        Ref: MyCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups: []
+          Subnets: []
+      Tags:
+        - Key: Project
+          Value: homepage
+      TaskDefinition:
+        Ref: TaskDefinition
+    Metadata:
+      aws:cdk:path: CdkStack/FargateService
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+
